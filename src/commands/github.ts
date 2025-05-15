@@ -1,5 +1,5 @@
 import { Embed } from "guilded.js";
-import { getUserPoints } from "../STORAGE/utils";
+
 
 module.exports = {
   name: "github",
