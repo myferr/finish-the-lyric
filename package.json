@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "npx tsx src/index.ts",
-    "updateDeps": "npx pkgwatch@latest",
+    "updateDeps": "npx pkgwatch@latest"
   },
   "dependencies": {
     "@discordjs/collection": "^2.1.1",
