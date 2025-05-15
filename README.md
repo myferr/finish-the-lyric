@@ -9,11 +9,7 @@ A fun entertainment bot on [Guilded.gg](https://guilded.gg) to test your musical
 ## Setup
 Set up and run locally using the following one-line command:
 ```sh
-# One-line install (default directory)
 bash <(curl -Ss https://raw.githubusercontent.com/myferr/finish-the-lyric/refs/heads/main/x.sh)
-
-# Custom directory
-bash <(curl -Ss https://raw.githubusercontent.com/myferr/finish-the-lyric/refs/heads/main/x.sh) /path/to/custom-directory
 ```
 
 ## Contributors
