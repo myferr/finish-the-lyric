@@ -3,7 +3,7 @@ import { Embed } from "guilded.js";
 module.exports = {
   name: "help",
   aliases: ["h", "commands", "list"],
-  execute: (msg) => {
+  execute: (msg: any) => {
     const e = new Embed()
       .setTitle("Help")
       .setDescription("All commands.")
@@ -13,7 +13,8 @@ module.exports = {
       .addFields([
         {
           name: "**Economy**",
-          value: "`+shop` - Shop\n\n`+points` - View your points balance",
+          value:
+            "`+shop` - Shop\n\n`+points` - View your points balance\n\n`+leaderboard` - View global leaderboard",
           inline: true,
         },
         {
@@ -23,10 +24,10 @@ module.exports = {
           inline: true,
         },
         {
-          name: "**Other**",
+          name: "\n\n**Other**",
           value:
             "`+github` - View the GitHub repository for the bot\n\n`+servercount` - How many servers is the bot in?",
-          inline: true,
+          inline: false,
         },
       ]);
     msg.reply(e);
