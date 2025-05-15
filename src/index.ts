@@ -15,7 +15,10 @@ const client = new Client({ token: env.API_Secret });
 const prefix = env.prefix;
 const commands = new Collection();
 
-client.on("messageCreated", async (msg: any) => {});
+client.on("messageCreated", async (msg: any) => {
+  if (!msg.content.startsWith(prefix)) return;
+  console.log(`${msg.author.id} --> ${msg.content}`);
+});
 
 client.on("messageCreated", async (msg: any) => {
   if (!msg.content.startsWith(prefix)) return;
