@@ -1,102 +1,86 @@
-import { Embed } from "guilded.js";
+const yaml = require("js-yaml");
+const fs = require("fs");
+const { Collection } = require("@discordjs/collection");
+const { readdir } = require("fs/promises");
+const { join } = require("path");
+const { Client } = require("guilded.js");
 
-module.exports = {
-  name: "help",
-  aliases: ["h", "commands", "list"],
-  execute: (msg: any, args: any) => {
-    const commands: {
-      [name: string]: {
-        description: string;
-        aliases: string[];
-        usage: string;
-      };
-    } = {
-      github: {
-        description: "View the GitHub repository for the bot",
-        aliases: ["gh"],
-        usage: "`+github`",
-      },
-      guess: {
-        description: "Guess correctly to earn points",
-        aliases: ["g", "play", "lyrics"],
-        usage: "`+guess <lyrics | song | undefined>`",
-      },
-      help: {
-        description: "Show a list of commands",
-        aliases: ["h", "commands", "list"],
-        usage: "`+help <command?: string>`",
-      },
-      leaderboard: {
-        description: "View global leaderboard",
-        aliases: ["lb", "top", "ranks"],
-        usage: "`+leaderboard`",
-      },
-      points: {
-        description: "View your points balance",
-        aliases: ["p", "bal"],
-        usage: "`+points`",
-      },
-      servercount: {
-        description: "How many servers is the bot in?",
-        aliases: ["servers", "guilds", "teamcount"],
-        usage: "`+servercount`",
-      },
-    };
+const envPath = join(__dirname, "../env.yml");
+const env = yaml.load(fs.readFileSync(envPath, "utf8"));
 
-    const argsJoined = args.join(" ");
-    const e = new Embed()
-      .setTitle("Help")
-      .setDescription("All commands.")
-      .setColor("GREEN")
-      .setFooter("+help <commmand> for more information about a command")
-      .setTimestamp()
-      .addFields([
-        {
-          name: "**Economy**",
-          value:
-            "`+points` - View your points balance\n\n`+leaderboard` - View global leaderboard",
-          inline: true,
-        },
-        {
-          name: "**General**",
-          value:
-            "`+help` - Show a list of commands\n\n`+guess` - Guess correctly to earn points",
-          inline: true,
-        },
-        {
-          name: "\n\n**Other**",
-          value:
-            "`+github` - View the GitHub repository for the bot\n\n`+servercount` - How many servers is the bot in?",
-          inline: false,
-        },
-      ]);
-    const e2 = new Embed()
-      .setTitle(`Help - ${args[0]}`)
-      .setDescription("Extended description on " + args[0])
-      .setColor("GREEN")
-      .setFooter("https://guilded.gg/app")
-      .setTimestamp()
-      .addFields([
-        {
-          name: "\n**Description**",
-          value: `${commands[args[0]].description}`,
-          inline: true,
-        },
-        {
-          name: "\n**Aliases**",
-          value: `${commands[args[0]].aliases.map((i) => ` ${"`"}${i}${"`"}`)}`,
-          inline: true,
-        },
-        {
-          name: "\n**Usage**",
-          value: `${commands[args[0]].usage}`,
-          inline: false,
-        },
-      ]);
-    if (argsJoined) {
-      msg.reply(e2);
-    } else {
-      msg.reply(e);
-    }
-  },
-};
+if (!env.API_Secret)
+  throw new Error("Please supply a Guilded API token in your env.yml file.");
+
+const client = new Client({ token: env.API_Secret });
+const prefix = env.prefix;
+const commands = new Collection();
+
+client.on("messageCreated", async (msg: any) => {
+  if (!msg.content.startsWith(prefix)) return;
+  console.log(`${msg.author.id} --> ${msg.content}`);
+});
+
+client.on("messageCreated", async (msg: any) => {
+  if (!msg.content.startsWith(prefix)) return;
+  console.log(msg.authorId + " - " + msg.content);
+  let [commandName, ...args] = msg.content
+    .slice(prefix.length)
+    .trim()
+    .split(/ +/);
+  commandName = commandName.toLowerCase();
+
+  const command =
+    commands.get(commandName) ??
+    commands.find((x: any) => x.aliases?.includes(commandName));
+  if (!command) return;
+
+  try {
+    await command.execute(msg, args);
+  } catch (e) {
+    void client.messages.send(
+      msg.channelId,
+      "There was an error executing that command!"
+    );
+    void console.error(e);
+  }
+});
+
+client.on("error", console.log);
+client.on(
+  "ready",
+  async () =>
+    await client.setStatus({
+      content: `+help | just vibing!`,
+      emoteId: 2796430,
+    }),
+  console.log(`Guilded bot is ready!\n\nPREFIX: ${prefix}`)
+);
+client.on("exit", () => console.log("Disconnected!"));
+
+void (async () => {
+  const commandDir = await readdir(join(__dirname, "commands"), {
+    withFileTypes: true,
+  });
+
+  const adminCommandDir = await readdir(join(__dirname, "commands", "admin"), {
+    withFileTypes: true,
+  });
+
+  for (const file of commandDir.filter((x: any) => x.name.endsWith(".ts"))) {
+    console.log(file.name);
+    const command = require(join(__dirname, "commands", file.name));
+    commands.set(command.name, command);
+  }
+
+  for (const file of adminCommandDir.filter((x: any) =>
+    x.name.endsWith(".ts")
+  )) {
+    console.log(`admin command: ${file.name}`);
+    const command = require(join(__dirname, "commands", "admin", file.name));
+    commands.set(command.name, command);
+  }
+
+  client.login();
+})();
+
+export { env, client };
