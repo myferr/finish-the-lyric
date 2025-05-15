@@ -1,0 +1,16 @@
+{
+  "name": "finish-the-lyric",
+  "private": true,
+  "description": "Example project for using the guilded.js package",
+  "author": "Myfer <contactme.myfer@protonmail.com>",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "npx tsx src/index.ts"
+  },
+  "dependencies": {
+    "@discordjs/collection": "^2.1.1",
+    "guilded.js": "^0.25.0",
+    "js-yaml": "^4.1.0"
+  },
+  "repository": "https://github.com/myferr/finish-the-lyric"
+}
