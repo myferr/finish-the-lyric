@@ -59,11 +59,25 @@ void (async () => {
     withFileTypes: true,
   });
 
+  const adminCommandDir = await readdir(join(__dirname, "commands", "admin"), {
+    withFileTypes: true,
+  });
+
   for (const file of commandDir.filter((x: any) => x.name.endsWith(".ts"))) {
     console.log(file.name);
     const command = require(join(__dirname, "commands", file.name));
     commands.set(command.name, command);
   }
 
+  for (const file of adminCommandDir.filter((x: any) =>
+    x.name.endsWith(".ts")
+  )) {
+    console.log(`admin command: ${file.name}`);
+    const command = require(join(__dirname, "commands", "admin", file.name));
+    commands.set(command.name, command);
+  }
+
   client.login();
 })();
+
+export { env, client };
