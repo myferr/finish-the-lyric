@@ -14,13 +14,13 @@ module.exports = {
         {
           name: "**Economy**",
           value:
-            "`+shop` - Shop\n\n`+points` - View your points balance\n\n`+leaderboard` - View global leaderboard",
+            "`+points` - View your points balance\n\n`+leaderboard` - View global leaderboard",
           inline: true,
         },
         {
           name: "**General**",
           value:
-            "`+guess` - Guess correctly to earn points\n\n`+artists` - View all artists",
+            "`+guess` - Guess correctly to earn points",
           inline: true,
         },
         {
