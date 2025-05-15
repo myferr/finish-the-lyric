@@ -52,6 +52,9 @@ if [ -f "env.example.yml" ]; then
   echo
   cp env.example.yml env.yml
   rm env.example.yml
+  rmdir docs
+  rmdir website
+  rm .gitmodules
   echo
 else
   echo "⚠️ No env.example.yml found. Make sure you have a env.yml file before running the app."
