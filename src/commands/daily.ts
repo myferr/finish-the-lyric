@@ -25,7 +25,7 @@ function writeCooldowns(data: Record<string, number>): void {
   writeFileSync(cooldownPath, JSON.stringify(data, null, 2));
 }
 
-const DAILY_POINTS = 50;
+const DAILY_POINTS = Math.floor(Math.random() * (30 - 10 + 1)) + 10; // 10 to 30
 const COOLDOWN_SECONDS = 24 * 60 * 60; // 24 hours in seconds
 
 module.exports = {
