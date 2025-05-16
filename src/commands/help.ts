@@ -46,6 +46,21 @@ module.exports = {
         aliases: ["s", "store", "market"],
         usage: "`+shop <category?: string>`",
       },
+      buy: {
+        description: "Buy an item from the shop",
+        aliases: [],
+        usage: "`+buy <category: string> <item: number>`",
+      },
+      daily: {
+        description: "Get a daily reward",
+        aliases: ["claim"],
+        usage: "`+daily`",
+      },
+      inventory: {
+        description: "View your cosmetics and boosts",
+        aliases: ["inv", "bag", "items"],
+        usage: "`+inventory`",
+      },
     };
 
     const argsJoined = args.join(" ");
@@ -59,13 +74,13 @@ module.exports = {
         {
           name: "**Economy**",
           value:
-            "`+points` - View your points balance\n\n`+leaderboard` - View global leaderboard\n\n`+shop` - View shop",
+            "`+guess` - Guess correctly to earn points\n\n`+leaderboard` - View global leaderboard\n\n`+shop` - View shop\n\n`+buy` - Buy an item from the shop\n\n`+daily` - Get a daily reward",
           inline: true,
         },
         {
           name: "**General**",
           value:
-            "`+help` - Show a list of commands\n\n`+guess` - Guess correctly to earn points",
+            "`+help` - Show a list of commands\n\n`+inventory` - View your cosmetics and boosts\n\n`+points` - View your points balance",
           inline: true,
         },
         {
