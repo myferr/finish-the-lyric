@@ -2,12 +2,19 @@ import { Embed } from "guilded.js";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
-const dbPath = join(__dirname, "../STORAGE/economy.json");
+const dbPath = join(__dirname, "../STORAGE/users.json");
 
 type EconomyData = {
   [userId: string]: {
     points: number;
+    itemsOwned?: string[];
   };
+};
+
+// Optional cosmetics map (emoji/title to show)
+const cosmeticsMap: Record<string, string> = {
+  '"Music Lover" title': "Music Lover 🎵 · ",
+  '"Vinyl Vibes" flair': "Vinyl Vibes 📀 · ",
 };
 
 function getAllUsersSorted() {
@@ -17,7 +24,11 @@ function getAllUsersSorted() {
   const data: EconomyData = JSON.parse(raw);
 
   return Object.entries(data)
-    .map(([userId, value]) => ({ userId, points: value.points }))
+    .map(([userId, value]) => ({
+      userId,
+      points: value.points,
+      itemsOwned: value.itemsOwned ?? [],
+    }))
     .sort((a, b) => b.points - a.points);
 }
 
@@ -47,11 +58,21 @@ module.exports = {
     const pageUsers = users.slice(start, end);
 
     const leaderboardText = pageUsers
-      .map((u, i) => `#${start + i + 1} <@${u.userId}> - ${u.points} points`)
+      .map((u, i) => {
+        const cosmetics =
+          u.itemsOwned
+            ?.map((item) => cosmeticsMap[item])
+            .filter(Boolean)
+            .join(" ") || "";
+
+        return `#${start + i + 1} <@${u.userId}> ${cosmetics} - ${
+          u.points
+        } points`;
+      })
       .join("\n");
 
     const embed = new Embed()
-      .setTitle("Leaderboard")
+      .setTitle("🏆 Leaderboard")
       .setDescription(leaderboardText)
       .setColor("GREEN")
       .setFooter(`Page ${page}/${totalPages} • +help leaderboard`)
