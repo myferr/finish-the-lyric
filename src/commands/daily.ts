@@ -1,32 +1,28 @@
-import { addPoints, getUserPoints } from "../STORAGE/utils";
+import { addPoints, getUserData, setUserData } from "../STORAGE/utils";
 import { Embed } from "guilded.js";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
 const cooldownPath = join(__dirname, "../STORAGE/dailyCooldowns.json");
+const DAILY_MIN = 10;
+const DAILY_MAX = 30;
+const BOOST_NAME = "20% DAILY BOOST";
+const MAX_BOOST_USES = 7;
 
 function readCooldowns(): Record<string, number> {
   if (!existsSync(cooldownPath)) {
     writeFileSync(cooldownPath, JSON.stringify({}, null, 2));
   }
-
-  const raw = JSON.parse(readFileSync(cooldownPath, "utf-8"));
-
-  for (const key in raw) {
-    if (raw[key] > 1e12) {
-      raw[key] = Math.floor(raw[key] / 1000);
-    }
-  }
-
-  return raw;
+  return JSON.parse(readFileSync(cooldownPath, "utf-8"));
 }
 
 function writeCooldowns(data: Record<string, number>): void {
   writeFileSync(cooldownPath, JSON.stringify(data, null, 2));
 }
 
-const DAILY_POINTS = Math.floor(Math.random() * (30 - 10 + 1)) + 10; // 10 to 30
-const COOLDOWN_SECONDS = 24 * 60 * 60; // 24 hours in seconds
+function getRandomPoints(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 module.exports = {
   name: "daily",
@@ -35,10 +31,10 @@ module.exports = {
     const userId = msg.author.id;
     const cooldowns = readCooldowns();
     const now = Math.floor(Date.now() / 1000); // seconds
-
     const lastClaim = cooldowns[userId] ?? 0;
     const elapsed = now - lastClaim;
 
+    const COOLDOWN_SECONDS = 24 * 60 * 60;
     if (elapsed < COOLDOWN_SECONDS) {
       const remaining = COOLDOWN_SECONDS - elapsed;
       const hours = Math.floor(remaining / 3600);
@@ -50,18 +46,34 @@ module.exports = {
       );
     }
 
-    // Grant points
-    addPoints(userId, DAILY_POINTS);
+    const user = getUserData(userId);
+    let points = getRandomPoints(DAILY_MIN, DAILY_MAX);
+
+    if (user.itemsOwned?.includes(BOOST_NAME)) {
+      points = Math.floor(points * 1.2);
+
+      // Use internal counter logic via a boost tag
+      if (!user._boostUses) user._boostUses = {};
+      user._boostUses[BOOST_NAME] = (user._boostUses[BOOST_NAME] || 0) + 1;
+
+      if (user._boostUses[BOOST_NAME] >= MAX_BOOST_USES) {
+        // Remove boost
+        user.itemsOwned = user.itemsOwned.filter(
+          (item: any) => item !== BOOST_NAME
+        );
+        delete user._boostUses[BOOST_NAME];
+        msg.reply("⚠️ Your **20% DAILY BOOST** has expired.");
+      }
+    }
+
+    addPoints(userId, points);
     cooldowns[userId] = now;
     writeCooldowns(cooldowns);
-
-    const totalPoints = getUserPoints(userId);
+    setUserData(userId, user);
 
     const embed = new Embed()
       .setTitle("🎁 Daily Reward")
-      .setDescription(
-        `You received **+${DAILY_POINTS}** points!\nYou now have **${totalPoints}** points.`
-      )
+      .setDescription(`You received **+${points}** points!`)
       .setColor("GOLD")
       .setTimestamp();
 

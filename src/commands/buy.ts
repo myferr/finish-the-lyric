@@ -24,14 +24,9 @@ const shopData = {
   boosts: {
     items: [
       {
-        name: "Double Points (1 use)",
-        description: "Next correct guess gives double points.",
+        name: "20% DAILY BOOST",
+        description: "Get 20% more points when using the daily command.",
         price: 100,
-      },
-      {
-        name: "Skip Lyric",
-        description: "Skip one lyric during a game.",
-        price: 75,
       },
     ],
   },
