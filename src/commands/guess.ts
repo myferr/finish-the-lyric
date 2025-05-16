@@ -8,7 +8,7 @@ module.exports = {
   name: "guess",
   aliases: ["g", "play", "lyrics"],
   execute: async (msg: any, args: any) => {
-    const argsJoined = args.join("");
+    const argsJoined = args.join(" ");
     const guessType = argsJoined.toLowerCase();
 
     const lyrics = await getSongWithLyrics(true);

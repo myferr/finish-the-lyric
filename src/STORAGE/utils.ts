@@ -1,52 +1,40 @@
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
-const dbPath = join(__dirname, "economy.json");
+const usersPath = join(__dirname, "users.json");
 
-type EconomyData = {
-  [userId: string]: {
-    points: number;
-  };
-};
-
-function readEconomy(): EconomyData {
-  if (!existsSync(dbPath)) {
-    writeFileSync(dbPath, JSON.stringify({}, null, 2));
+function readUsers(): Record<string, any> {
+  if (!existsSync(usersPath)) {
+    writeFileSync(usersPath, JSON.stringify({}, null, 2));
   }
-  return JSON.parse(readFileSync(dbPath, "utf-8"));
+  return JSON.parse(readFileSync(usersPath, "utf-8"));
 }
 
-function writeEconomy(data: EconomyData): void {
-  writeFileSync(dbPath, JSON.stringify(data, null, 2));
+function writeUsers(data: Record<string, any>): void {
+  writeFileSync(usersPath, JSON.stringify(data, null, 2));
+}
+
+export function getUserData(userId: string): any {
+  const users = readUsers();
+  return users[userId] ?? { points: 0, itemsOwned: [] };
+}
+
+export function setUserData(userId: string, newData: any): void {
+  const users = readUsers();
+  users[userId] = newData;
+  writeUsers(users);
 }
 
 export function getUserPoints(userId: string): number {
-  const db = readEconomy();
-  return db[userId]?.points ?? 0;
-}
-
-export function setUserPoints(userId: string, points: number): void {
-  const db = readEconomy();
-  db[userId] = { points };
-  writeEconomy(db);
+  const data = getUserData(userId);
+  return data.points || 0;
 }
 
 export function addPoints(userId: string, amount: number): void {
-  const db = readEconomy();
-  if (!db[userId]) db[userId] = { points: 0 };
-  db[userId].points += amount;
-  writeEconomy(db);
-}
-
-export function removePoints(userId: string, amount: number): void {
-  const db = readEconomy();
-  if (!db[userId]) db[userId] = { points: 0 };
-  db[userId].points = Math.max(0, db[userId].points - amount);
-  writeEconomy(db);
-}
-
-export function resetUser(userId: string): void {
-  const db = readEconomy();
-  delete db[userId];
-  writeEconomy(db);
+  const users = readUsers();
+  if (!users[userId]) {
+    users[userId] = { points: 0, itemsOwned: [] };
+  }
+  users[userId].points = (users[userId].points || 0) + amount;
+  writeUsers(users);
 }

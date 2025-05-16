@@ -41,6 +41,11 @@ module.exports = {
         aliases: ["servers", "guilds", "teamcount"],
         usage: "`+servercount`",
       },
+      shop: {
+        description: "View shop",
+        aliases: ["s", "store", "market"],
+        usage: "`+shop <category?: string>`",
+      },
     };
 
     const argsJoined = args.join(" ");
@@ -54,7 +59,7 @@ module.exports = {
         {
           name: "**Economy**",
           value:
-            "`+points` - View your points balance\n\n`+leaderboard` - View global leaderboard",
+            "`+points` - View your points balance\n\n`+leaderboard` - View global leaderboard\n\n`+shop` - View shop",
           inline: true,
         },
         {
@@ -70,30 +75,32 @@ module.exports = {
           inline: false,
         },
       ]);
-    const e2 = new Embed()
-      .setTitle(`Help - ${args[0]}`)
-      .setDescription("Extended description on " + args[0])
-      .setColor("GREEN")
-      .setFooter("https://guilded.gg/app")
-      .setTimestamp()
-      .addFields([
-        {
-          name: "\n**Description**",
-          value: `${commands[args[0]].description}`,
-          inline: true,
-        },
-        {
-          name: "\n**Aliases**",
-          value: `${commands[args[0]].aliases.map((i) => ` ${"`"}${i}${"`"}`)}`,
-          inline: true,
-        },
-        {
-          name: "\n**Usage**",
-          value: `${commands[args[0]].usage}`,
-          inline: false,
-        },
-      ]);
     if (argsJoined) {
+      const e2 = new Embed()
+        .setTitle(`Help - ${args[0]}`)
+        .setDescription("Extended description on " + args[0])
+        .setColor("GREEN")
+        .setFooter("https://guilded.gg/app")
+        .setTimestamp()
+        .addFields([
+          {
+            name: "\n**Description**",
+            value: `${commands[args[0]].description}`,
+            inline: true,
+          },
+          {
+            name: "\n**Aliases**",
+            value: `${commands[args[0]].aliases.map(
+              (i) => ` ${"`"}${i}${"`"}`
+            )}`,
+            inline: true,
+          },
+          {
+            name: "\n**Usage**",
+            value: `${commands[args[0]].usage}`,
+            inline: false,
+          },
+        ]);
       msg.reply(e2);
     } else {
       msg.reply(e);
