@@ -12,14 +12,19 @@ const env = yaml.load(fs.readFileSync(envPath, "utf8")) as any;
 if (!env.API_Secret)
   throw new Error("Please supply a Guilded API token in your env.yml file.");
 
-let secret: string | any;
-const defaultPrefix = argv[1] === "--canary" ? env.prefix : env.canary_prefix;
+const isCanary = argv.includes("--canary");
 
-if (argv[1] == "--canary") {
-  secret = env.Canary_API_Secret;
-} else {
-  secret = env.API_Secret;
+const secret = isCanary ? env.Canary_API_Secret : env.API_Secret;
+
+if (!secret) {
+  throw new Error(
+    `Please supply a ${
+      isCanary ? "Canary" : "Production"
+    } Guilded API token in your env.yml file.`
+  );
 }
+
+const defaultPrefix = isCanary ? env.canary_prefix : env.prefix;
 
 const client = new Client({ token: secret });
 const commands = new Collection();

@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
+import { Embed } from "guilded.js";
 
 const prefixPath = join(__dirname, "../STORAGE/prefixes.json");
 
@@ -14,7 +15,7 @@ function writePrefixes(data: Record<string, string>) {
 
 module.exports = {
   name: "prefix",
-  aliases: [],
+  aliases: ["p", "changePrefix"],
   description: "View or change the bot's command prefix for this server.",
   execute: async (msg: any, args: string[]) => {
     const serverId = msg.serverId;
@@ -27,7 +28,12 @@ module.exports = {
 
     // Show current prefix
     if (args.length === 0) {
-      return msg.reply(`🔧 The current prefix is \`${currentPrefix}\``);
+      const embed = new Embed()
+        .setTitle("Current Prefix")
+        .setDescription(`The current prefix is \`${currentPrefix}\``)
+        .setColor("YELLOW")
+        .setTimestamp();
+      return msg.reply(embed);
     }
 
     // Only the server owner can change the prefix
@@ -45,6 +51,12 @@ module.exports = {
     prefixes[serverId] = newPrefix;
     writePrefixes(prefixes);
 
-    return msg.reply(`✅ Prefix updated to \`${newPrefix}\``);
+    const embed = new Embed()
+      .setTitle("Prefix Updated")
+      .setDescription(`New prefix: \`${newPrefix}\``)
+      .setColor("GREEN")
+      .setTimestamp();
+
+    return msg.reply(embed);
   },
 };
