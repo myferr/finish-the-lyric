@@ -5,7 +5,8 @@
   "scripts": {
     "start": "npx tsx src/index.ts",
     "dev": "npx nodemon@latest",
-    "updateDeps": "npx pkgwatch@latest"
+    "updateDeps": "npx pkgwatch@latest",
+    "canary": "npx tsx src/index.ts --canary"
   },
   "dependencies": {
     "@discordjs/collection": "^2.1.1",

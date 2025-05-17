@@ -1,3 +1,5 @@
+import { argv } from "process";
+
 const yaml = require("js-yaml");
 const fs = require("fs");
 const { Collection } = require("@discordjs/collection");
@@ -8,11 +10,25 @@ const { Client } = require("guilded.js");
 const envPath = join(__dirname, "../env.yml");
 const env = yaml.load(fs.readFileSync(envPath, "utf8"));
 
+let secret;
+let prefix;
+
 if (!env.API_Secret)
   throw new Error("Please supply a Guilded API token in your env.yml file.");
 
-const client = new Client({ token: env.API_Secret });
-const prefix = env.prefix;
+if (argv[1] != "--canary") {
+  secret = env.Canary_API_Secret;
+} else {
+  secret = env.API_Secret;
+}
+
+if (argv[1] != "--canary") {
+  prefix = env.canary_prefix;
+} else {
+  prefix = env.prefix;
+}
+
+const client = new Client({ token: secret });
 const commands = new Collection();
 
 client.on("messageCreated", async (msg: any) => {
