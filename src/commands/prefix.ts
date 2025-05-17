@@ -44,8 +44,8 @@ module.exports = {
 
     const newPrefix = args[0];
 
-    if (newPrefix.length > 5) {
-      return msg.reply("❌ That prefix is too long. Max 5 characters.");
+    if (newPrefix.length > 10) {
+      return msg.reply("❌ That prefix is too long. Max 10 characters.");
     }
 
     prefixes[serverId] = newPrefix;
