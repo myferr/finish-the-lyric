@@ -1,3 +1,4 @@
+const { argv } = require("process");
 const yaml = require("js-yaml");
 const fs = require("fs");
 const { Collection } = require("@discordjs/collection");
@@ -6,81 +7,108 @@ const { join } = require("path");
 const { Client } = require("guilded.js");
 
 const envPath = join(__dirname, "../env.yml");
-const env = yaml.load(fs.readFileSync(envPath, "utf8"));
+const env = yaml.load(fs.readFileSync(envPath, "utf8")) as any;
 
 if (!env.API_Secret)
   throw new Error("Please supply a Guilded API token in your env.yml file.");
 
-const client = new Client({ token: env.API_Secret });
-const prefix = env.prefix;
+const isCanary = argv.includes("--canary");
+
+const secret = isCanary ? env.Canary_API_Secret : env.API_Secret;
+
+if (!secret) {
+  throw new Error(
+    `Please supply a ${
+      isCanary ? "Canary" : "Production"
+    } Guilded API token in your env.yml file.`
+  );
+}
+
+const defaultPrefix = isCanary ? env.canary_prefix : env.prefix;
+
+const client = new Client({ token: secret });
 const commands = new Collection();
 
-client.on("messageCreated", async (msg: any) => {
-  if (!msg.content.startsWith(prefix)) return;
-  console.log(`${msg.author.id} --> ${msg.content}`);
-});
+const prefixPath = join(__dirname, "STORAGE/prefixes.json");
+function readPrefixes(): Record<string, string> {
+  if (!fs.existsSync(prefixPath)) fs.writeFileSync(prefixPath, "{}");
+  return JSON.parse(fs.readFileSync(prefixPath, "utf-8"));
+}
 
 client.on("messageCreated", async (msg: any) => {
-  if (!msg.content.startsWith(prefix)) return;
-  console.log(msg.authorId + " - " + msg.content);
+  if (!msg.content || !msg.serverId) return;
+
+  const prefixes = readPrefixes();
+  const serverPrefix = prefixes[msg.serverId] || defaultPrefix;
+
+  if (!msg.content.startsWith(serverPrefix)) return;
+
+  console.log(`${msg.author.id} --> ${msg.content}`);
+
   let [commandName, ...args] = msg.content
-    .slice(prefix.length)
+    .slice(serverPrefix.length)
     .trim()
     .split(/ +/);
   commandName = commandName.toLowerCase();
 
   const command =
     commands.get(commandName) ??
-    commands.find((x: any) => x.aliases?.includes(commandName));
+    commands.find((cmd: any) => cmd.aliases?.includes(commandName));
+
   if (!command) return;
 
   try {
     await command.execute(msg, args);
-  } catch (e) {
+  } catch (err) {
+    console.error(err);
     void client.messages.send(
       msg.channelId,
-      "There was an error executing that command!"
+      "❌ There was an error executing that command!"
     );
-    void console.error(e);
   }
 });
 
-client.on("error", console.log);
-client.on(
-  "ready",
-  async () =>
-    await client.setStatus({
-      content: `+help | just vibing!`,
-      emoteId: 2796430,
-    }),
-  console.log(`Guilded bot is ready!\n\nPREFIX: ${prefix}`)
-);
-client.on("exit", () => console.log("Disconnected!"));
+client.on("error", console.error);
+
+client.on("ready", async () => {
+  await client.setStatus({
+    content: `${defaultPrefix}help | just vibing!`,
+    emoteId: 2796430,
+  });
+  console.log(
+    `✅ Guilded bot is ready! (${
+      secret == env.Canary_API_Secret ? "Canary mode" : "Default"
+    })`
+  );
+});
 
 void (async () => {
-  const commandDir = await readdir(join(__dirname, "commands"), {
-    withFileTypes: true,
-  });
+  const mainCommandDir = join(__dirname, "commands");
+  const adminCommandDir = join(mainCommandDir, "admin");
 
-  const adminCommandDir = await readdir(join(__dirname, "commands", "admin"), {
-    withFileTypes: true,
-  });
+  const mainFiles = (
+    await readdir(mainCommandDir, { withFileTypes: true })
+  ).filter((x: any) => x.name.endsWith(".ts") || x.name.endsWith(".js"));
 
-  for (const file of commandDir.filter((x: any) => x.name.endsWith(".ts"))) {
-    console.log(file.name);
-    const command = require(join(__dirname, "commands", file.name));
+  const adminFiles = (
+    fs.existsSync(adminCommandDir)
+      ? await readdir(adminCommandDir, { withFileTypes: true })
+      : []
+  ).filter((x: any) => x.name.endsWith(".ts") || x.name.endsWith(".js"));
+
+  for (const file of mainFiles) {
+    const command = require(join(mainCommandDir, file.name));
     commands.set(command.name, command);
+    console.log(`Loaded command: ${file.name}`);
   }
 
-  for (const file of adminCommandDir.filter((x: any) =>
-    x.name.endsWith(".ts")
-  )) {
-    console.log(`admin command: ${file.name}`);
-    const command = require(join(__dirname, "commands", "admin", file.name));
+  for (const file of adminFiles) {
+    const command = require(join(adminCommandDir, file.name));
     commands.set(command.name, command);
+    console.log(`Loaded admin command: ${file.name}`);
   }
 
-  client.login();
+  await client.login();
 })();
 
 export { env, client };

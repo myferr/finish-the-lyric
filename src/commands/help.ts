@@ -1,9 +1,24 @@
 import { Embed } from "guilded.js";
+import { readFileSync, existsSync, writeFileSync } from "fs";
+import { join } from "path";
+
+const prefixPath = join(__dirname, "../STORAGE/prefixes.json");
+
+function readPrefixes(): Record<string, string> {
+  if (!existsSync(prefixPath)) {
+    writeFileSync(prefixPath, "{}");
+  }
+  return JSON.parse(readFileSync(prefixPath, "utf-8"));
+}
 
 module.exports = {
   name: "help",
   aliases: ["h", "commands", "list"],
-  execute: (msg: any, args: any) => {
+  execute: (msg: any, args: string[]) => {
+    const serverId = msg.serverId;
+    const prefixes = readPrefixes();
+    const currentPrefix = (serverId && prefixes[serverId]) || "+";
+
     const commands: {
       [name: string]: {
         description: string;
@@ -14,52 +29,57 @@ module.exports = {
       github: {
         description: "View the GitHub repository for the bot",
         aliases: ["gh"],
-        usage: "`+github`",
+        usage: `\`${currentPrefix}github\``,
       },
       guess: {
         description: "Guess correctly to earn points",
         aliases: ["g", "play", "lyrics"],
-        usage: "`+guess <lyrics | song | undefined>`",
+        usage: `\`${currentPrefix}guess <lyrics | song | undefined>\``,
       },
       help: {
         description: "Show a list of commands",
         aliases: ["h", "commands", "list"],
-        usage: "`+help <command?: string>`",
+        usage: `\`${currentPrefix}help <command?: string>\``,
       },
       leaderboard: {
         description: "View global leaderboard",
         aliases: ["lb", "top", "ranks"],
-        usage: "`+leaderboard`",
+        usage: `\`${currentPrefix}leaderboard\``,
       },
       points: {
         description: "View your points balance",
         aliases: ["p", "bal"],
-        usage: "`+points`",
+        usage: `\`${currentPrefix}points\``,
       },
       servercount: {
         description: "How many servers is the bot in?",
         aliases: ["servers", "guilds", "teamcount"],
-        usage: "`+servercount`",
+        usage: `\`${currentPrefix}servercount\``,
       },
       shop: {
         description: "View shop",
         aliases: ["s", "store", "market"],
-        usage: "`+shop <category?: string>`",
+        usage: `\`${currentPrefix}shop <category?: string>\``,
       },
       buy: {
         description: "Buy an item from the shop",
         aliases: [],
-        usage: "`+buy <category: string> <item: number>`",
+        usage: `\`${currentPrefix}buy <category: string> <item: number>\``,
       },
       daily: {
         description: "Get a daily reward",
         aliases: ["claim"],
-        usage: "`+daily`",
+        usage: `\`${currentPrefix}daily\``,
       },
       inventory: {
         description: "View your cosmetics and boosts",
         aliases: ["inv", "bag", "items"],
-        usage: "`+inventory`",
+        usage: `\`${currentPrefix}inventory\``,
+      },
+      prefix: {
+        description: "View or change the bot's command prefix for this server",
+        aliases: ["p", "changePrefix"],
+        usage: `\`${currentPrefix}prefix [newPrefix?]\``,
       },
     };
 
@@ -68,29 +88,39 @@ module.exports = {
       .setTitle("Help")
       .setDescription("All commands.")
       .setColor("GREEN")
-      .setFooter("+help <commmand> for more information about a command")
+      .setFooter(`${currentPrefix}help <command> for more info`)
       .setTimestamp()
       .addFields([
         {
           name: "**Economy**",
-          value:
-            "`+guess` - Guess correctly to earn points\n\n`+leaderboard` - View global leaderboard\n\n`+shop` - View shop\n\n`+buy` - Buy an item from the shop\n\n`+daily` - Get a daily reward",
+          value: [
+            `\`${currentPrefix}guess\` — Guess lyrics to earn points`,
+            `\`${currentPrefix}leaderboard\` — View global leaderboard`,
+            `\`${currentPrefix}shop\` — View shop`,
+            `\`${currentPrefix}buy\` — Buy an item from the shop`,
+            `\`${currentPrefix}daily\` — Get a daily reward`,
+          ].join("\n\n"),
           inline: true,
         },
         {
           name: "**General**",
-          value:
-            "`+help` - Show a list of commands\n\n`+inventory` - View your cosmetics and boosts\n\n`+points` - View your points balance",
+          value: [
+            `\`${currentPrefix}help\` — Show a list of commands`,
+            `\`${currentPrefix}inventory\` — View your cosmetics and boosts`,
+            `\`${currentPrefix}points\` — View your points balance`,
+            `\`${currentPrefix}prefix\` — Change or view this server's prefix`,
+          ].join("\n\n"),
           inline: true,
         },
         {
-          name: "\n\n**Other**",
-          value:
-            "`+github` - View the GitHub repository for the bot\n\n`+servercount` - How many servers is the bot in?",
+          name: "**Other**",
+          value: `\`${currentPrefix}github\` — View the GitHub repository\n\`${currentPrefix}servercount\` — Bot server count`,
           inline: false,
         },
       ]);
-    if (argsJoined) {
+
+    if (argsJoined && commands[args[0]]) {
+      const c = commands[args[0]];
       const e2 = new Embed()
         .setTitle(`Help - ${args[0]}`)
         .setDescription("Extended description on " + args[0])
@@ -99,20 +129,20 @@ module.exports = {
         .setTimestamp()
         .addFields([
           {
-            name: "\n**Description**",
-            value: `${commands[args[0]].description}`,
+            name: "**Description**",
+            value: c.description,
             inline: true,
           },
           {
-            name: "\n**Aliases**",
-            value: `${commands[args[0]].aliases.map(
-              (i) => ` ${"`"}${i}${"`"}`
-            )}`,
+            name: "**Aliases**",
+            value: c.aliases.length
+              ? c.aliases.map((i) => `\`${i}\``).join(", ")
+              : "None",
             inline: true,
           },
           {
-            name: "\n**Usage**",
-            value: `${commands[args[0]].usage}`,
+            name: "**Usage**",
+            value: c.usage,
             inline: false,
           },
         ]);
