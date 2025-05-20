@@ -1,8 +1,3 @@
 [submodule "website"]
-path = website
-url = https://github.com/finish-the-lyric-bot/website
-
-[submodule "docs"]
-path = docs
-url = https://github.com/finish-the-lyric-bot/website.git
-branch = docs
+	path = website
+	url = https://github.com/finish-the-lyric-bot/website
