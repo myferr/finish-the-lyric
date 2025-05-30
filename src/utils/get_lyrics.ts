@@ -111,24 +111,37 @@ async function getSongWithLyrics(random?: boolean) {
     }
 
     const lyrics = await getLyrics(result.artist, result.song);
-    if (!lyrics) {
+    if (!lyrics || lyrics.split(/\s+/).filter(Boolean).length < 3) {
       console.warn(
-        `⚠️ Attempt ${attempt + 1}: Lyrics not found for ${result.artist} - ${
-          result.song
-        }, retrying...`
+        `⚠️ Attempt ${attempt + 1}: Lyrics too short or not found for ${
+          result.artist
+        } - ${result.song}, retrying...`
       );
       continue;
     }
 
-    // If random is true, pick a random line from the lyrics
     let outputLyrics = lyrics;
+
     if (random) {
       const lines = lyrics
         .split("\n")
         .map((line) => line.trim())
         .filter((line) => line.length > 0);
 
-      outputLyrics = lines[Math.floor(Math.random() * lines.length)] || "";
+      const goodLines = lines.filter(
+        (line) => line.split(/\s+/).filter(Boolean).length >= 3
+      );
+
+      if (goodLines.length === 0) {
+        console.warn(
+          `⚠️ Attempt ${attempt + 1}: No suitable lines found in ${
+            result.artist
+          } - ${result.song}, retrying...`
+        );
+        continue;
+      }
+
+      outputLyrics = goodLines[Math.floor(Math.random() * goodLines.length)];
     }
 
     return {
