@@ -111,11 +111,11 @@ async function getSongWithLyrics(random?: boolean) {
     }
 
     const lyrics = await getLyrics(result.artist, result.song);
-    if (!lyrics) {
+    if (!lyrics || lyrics.split(/\s+/).filter(Boolean).length < 3) {
       console.warn(
-        `⚠️ Attempt ${attempt + 1}: Lyrics not found for ${result.artist} - ${
-          result.song
-        }, retrying...`
+        `⚠️ Attempt ${attempt + 1}: Lyrics too short or not found for ${
+          result.artist
+        } - ${result.song}, retrying...`
       );
       continue;
     }
