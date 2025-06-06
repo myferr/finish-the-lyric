@@ -8,6 +8,7 @@ type EconomyData = {
   [userId: string]: {
     points: number;
     itemsOwned?: string[];
+    name: string;
   };
 };
 
@@ -28,6 +29,7 @@ function getAllUsersSorted() {
       userId,
       points: value.points,
       itemsOwned: value.itemsOwned ?? [],
+      name: value.name,
     }))
     .sort((a, b) => b.points - a.points);
 }
@@ -64,10 +66,7 @@ module.exports = {
             ?.map((item) => cosmeticsMap[item])
             .filter(Boolean)
             .join(" ") || "";
-
-        return `#${start + i + 1} <@${u.userId}> ${cosmetics} - ${
-          u.points
-        } points`;
+        return `#${start + i + 1} ${u.name} ${cosmetics} - ${u.points} points`;
       })
       .join("\n");
 

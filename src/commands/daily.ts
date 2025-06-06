@@ -66,10 +66,13 @@ module.exports = {
       }
     }
 
-    addPoints(userId, points);
+    // Add points and update user data
+    user.points = user.points || 0;
+    setUserData(userId, user);
+    addPoints(userId, points, msg.author.name);
+    console.log("Added points: " + points);
     cooldowns[userId] = now;
     writeCooldowns(cooldowns);
-    setUserData(userId, user);
 
     const embed = new Embed()
       .setTitle("🎁 Daily Reward")
