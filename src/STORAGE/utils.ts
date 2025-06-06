@@ -30,10 +30,10 @@ export function getUserPoints(userId: string): number {
   return data.points || 0;
 }
 
-export function addPoints(userId: string, amount: number): void {
+export function addPoints(userId: string, amount: number, name: string): void {
   const users = readUsers();
   if (!users[userId]) {
-    users[userId] = { points: 0, itemsOwned: [] };
+    users[userId] = { name: name, points: 0, itemsOwned: [] };
   }
   users[userId].points = (users[userId].points || 0) + amount;
   writeUsers(users);
