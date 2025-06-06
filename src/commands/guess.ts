@@ -51,7 +51,7 @@ module.exports = {
 
           if (guess.includes(answer)) {
             const userId = msg.createdById;
-            addPoints(userId, points);
+            addPoints(userId, points, msg.author.name);
             const userPoints = getUserPoints(userId);
 
             msg.reply(
@@ -101,7 +101,7 @@ module.exports = {
 
           if (guess === answer) {
             const userId = msg.createdById;
-            addPoints(userId, points);
+            addPoints(userId, points, msg.author.name);
             const userPoints = getUserPoints(userId);
 
             msg.reply(
