@@ -1,6 +1,7 @@
 import { Embed } from "guilded.js";
 import { addPoints, getUserPoints } from "../STORAGE/utils";
-
+import { isProfane } from "../utils/no-explicit";
+const NoExplicitServers = require("../STORAGE/no-explicit.json");
 const { getSongWithLyrics } = require("../utils/get_lyrics");
 const { client } = require("../index");
 
@@ -8,10 +9,29 @@ module.exports = {
   name: "guess",
   aliases: ["g", "play", "lyrics"],
   execute: async (msg: any, args: any) => {
+    const serverId =
+      msg.serverId || msg.guildId || (msg.server && msg.server.id);
     const argsJoined = args.join(" ");
     const guessType = argsJoined.toLowerCase();
+    const ServersWithNoExplicit = NoExplicitServers.servers;
+    const isServerClean = ServersWithNoExplicit.includes(serverId);
 
-    const lyrics = await getSongWithLyrics(true);
+    if (isServerClean) {
+      console.log(`Server ${serverId} has explicit lyrics blocked!`);
+    }
+
+    async function fetchCleanLyrics(): Promise<any> {
+      let lyrics;
+      let attempts = 0;
+      do {
+        lyrics = await getSongWithLyrics(true);
+        attempts++;
+        if (!lyrics) break;
+      } while ((await isProfane(lyrics.lyrics)) && attempts < 5);
+      return lyrics;
+    }
+
+    let lyrics = await fetchCleanLyrics();
     if (!lyrics) return msg.reply("❌ Couldn't find any lyrics. Try again!");
 
     const points = Math.floor(Math.random() * 14) + 1;
@@ -23,6 +43,18 @@ module.exports = {
       const cutWords = words.slice(0, words.length - numToRemove);
       const missingWords = words.slice(words.length - numToRemove).join(" ");
       const lyricPrompt = cutWords.join(" ") + " ...";
+
+      if (isServerClean) {
+        if (
+          (await isProfane(cutWords.join(" "))) ||
+          (await isProfane(missingWords)) ||
+          ((await isProfane(cutWords.join(" "))) &&
+            (await isProfane(missingWords)))
+        ) {
+          console.log("Refetching due to profanity.");
+          fetchCleanLyrics();
+        }
+      }
 
       const embed = new Embed()
         .setTitle("🎵 Finish the lyric:")
@@ -69,6 +101,13 @@ module.exports = {
 
       client.on("messageCreated", listener);
     } else if (guessType === "song") {
+      if (isServerClean) {
+        if (await isProfane(lyrics.lyrics)) {
+          console.log("Refetching due to profanity.");
+          fetchCleanLyrics();
+        }
+      }
+
       // Guess song name logic
       const embed = new Embed()
         .setTitle("🎵 Guess the song name:")
