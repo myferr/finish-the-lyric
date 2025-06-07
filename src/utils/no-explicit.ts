@@ -13,4 +13,4 @@ const isProfane = async (message: string): Promise<boolean> => {
   return result.score > 0.82;
 };
 
-export { reponse, isProfane }
+export { response, isProfane }
