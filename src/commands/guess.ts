@@ -1,6 +1,6 @@
 import { Embed } from "guilded.js";
 import { addPoints, getUserPoints } from "../STORAGE/utils";
-import { isProfane } from "../utils/no-explicit";
+import { safespeak } from "safespeak";
 const NoExplicitServers = require("../STORAGE/no-explicit.json");
 const { getSongWithLyrics } = require("../utils/get_lyrics");
 const { client } = require("../index");
@@ -15,6 +15,7 @@ module.exports = {
     const guessType = argsJoined.toLowerCase();
     const ServersWithNoExplicit = NoExplicitServers.servers;
     const isServerClean = ServersWithNoExplicit.includes(serverId);
+    const THRESHOLD = 0.7;
 
     if (isServerClean) {
       console.log(`Server ${serverId} has explicit lyrics blocked!`);
@@ -27,7 +28,10 @@ module.exports = {
         lyrics = await getSongWithLyrics(true);
         attempts++;
         if (!lyrics) break;
-      } while ((await isProfane(lyrics.lyrics)) && attempts < 5);
+      } while (
+        (await safespeak.isProfane(lyrics.lyrics, THRESHOLD)) &&
+        attempts < 5
+      );
       return lyrics;
     }
 
@@ -46,10 +50,10 @@ module.exports = {
 
       if (isServerClean) {
         if (
-          (await isProfane(cutWords.join(" "))) ||
-          (await isProfane(missingWords)) ||
-          ((await isProfane(cutWords.join(" "))) &&
-            (await isProfane(missingWords)))
+          (await safespeak.isProfane(cutWords.join(" "), THRESHOLD)) ||
+          (await safespeak.isProfane(missingWords, THRESHOLD)) ||
+          ((await safespeak.isProfane(cutWords.join(" "), THRESHOLD)) &&
+            (await safespeak.isProfane(missingWords, THRESHOLD)))
         ) {
           console.log("Refetching due to profanity.");
           fetchCleanLyrics();
@@ -102,7 +106,7 @@ module.exports = {
       client.on("messageCreated", listener);
     } else if (guessType === "song") {
       if (isServerClean) {
-        if (await isProfane(lyrics.lyrics)) {
+        if (await safespeak.isProfane(lyrics.lyrics, THRESHOLD)) {
           console.log("Refetching due to profanity.");
           fetchCleanLyrics();
         }
