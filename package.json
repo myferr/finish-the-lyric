@@ -12,7 +12,8 @@
     "@discordjs/collection": "^2.1.1",
     "axios": "^1.9.0",
     "guilded.js": "^0.25.0",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "safespeak": "^0.0.3"
   },
   "repository": "https://github.com/myferr/finish-the-lyric"
 }
