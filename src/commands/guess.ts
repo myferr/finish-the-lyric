@@ -15,7 +15,7 @@ module.exports = {
     const guessType = argsJoined.toLowerCase();
     const ServersWithNoExplicit = NoExplicitServers.servers;
     const isServerClean = ServersWithNoExplicit.includes(serverId);
-    const THRESHOLD = 0.7;
+    const THRESHOLD = 0.6;
 
     if (isServerClean) {
       console.log(`Server ${serverId} has explicit lyrics blocked!`);
