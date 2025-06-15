@@ -76,7 +76,7 @@ module.exports = {
     }
 
     // Deduct points and add item
-    addPoints(userId, -item.price);
+    addPoints(userId, -item.price, msg.author.name);
     ownedItems.push(item.name);
 
     setUserData(userId, {
