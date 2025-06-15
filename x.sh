@@ -52,7 +52,6 @@ if [ -f "env.example.yml" ]; then
   echo
   cp env.example.yml env.yml
   rm env.example.yml
-  rmdir docs
   rmdir website
   rm .gitmodules
   echo
