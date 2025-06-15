@@ -71,8 +71,13 @@ client.on("messageCreated", async (msg: any) => {
 client.on("error", console.error);
 
 client.on("ready", async () => {
+  const servers = await client.fetchServers();
+  const serverCount = servers.size;
+
   await client.setStatus({
-    content: `${defaultPrefix}help | just vibing!`,
+    content: `${defaultPrefix}help | vibing in ${serverCount} server${
+      serverCount > 1 ? "s" : ""
+    }!`,
     emoteId: 2796430,
   });
   console.log(
