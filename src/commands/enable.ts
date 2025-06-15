@@ -13,7 +13,7 @@ module.exports = {
     if (!supportedModules.includes(module)) {
       const server = await msg.client.servers.fetch(serverId);
       if (server.ownerId !== msg.author.id) {
-        return msg.reply("❌ Only the server owner can change the prefix.");
+        return msg.reply("❌ Only the server owner can toggle modules.");
       }
       const e = new Embed()
         .setTitle("Module not found")
